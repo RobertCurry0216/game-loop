@@ -6,6 +6,14 @@
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 bool game_is_running = false;
+int last_frame_time = 0;
+
+struct ball {
+  float x;
+  float y;
+  float width;
+  float height;
+} ball;
 
 bool initalize_window(void){
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -53,11 +61,45 @@ void process_input() {
   }
 }
 
-void setup() {}
+void setup() {
+  ball.x = 20;
+  ball.y = 20;
+  ball.width = 20;
+  ball.height = 20;
+}
 
-void update() {}
+float delay() {
+  int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - last_frame_time);
+  if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+    SDL_Delay(time_to_wait);
+  }
+  float delta_time = (SDL_GetTicks() - last_frame_time) / 1000.0f;
+  last_frame_time = SDL_GetTicks();
+  return delta_time;
+}
 
-void render() {}
+void update(float delta_time) {
+  ball.x += 50 * delta_time;
+  ball.y += 40 * delta_time;
+}
+
+void render() {
+  SDL_SetRenderDrawColor(renderer, 0,0,0,255);
+  SDL_RenderClear(renderer);
+
+  // draw a rectangle
+  SDL_Rect ball_rect = {
+    (int)ball.x,
+    (int)ball.y,
+    (int)ball.width,
+    (int)ball.height
+  };
+
+  SDL_SetRenderDrawColor(renderer, 255,255,255,255);
+  SDL_RenderFillRect(renderer, &ball_rect);
+
+  SDL_RenderPresent(renderer);
+}
 
 void destroy_window() {
   SDL_DestroyRenderer(renderer);
@@ -71,8 +113,9 @@ int main() {
   setup();
 
   while (game_is_running) {
+    float dt = delay();
     process_input();
-    update();
+    update(dt);
     render();
   }
 
